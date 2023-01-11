@@ -15,7 +15,9 @@ export const useRelaysStore = defineStore('relays', {
     aggregates: {},
     aggregatesAreSet: false,
     cached: new Object(),
-    canonicals: new Object()
+    canonicals: new Object(),
+    nip23: new Object(),
+    nip23Synced: new Object(),
   }),
   getters: {
     getAll: (state) => state.urls,
@@ -51,28 +53,34 @@ export const useRelaysStore = defineStore('relays', {
 
     getCanonicals: state => state.canonicals,
     getCanonical: state => relay => state.canonicals[relay],
+
+    getNip23: state => state.nip23
   },
   actions: {
-    addRelay(relayUrl){ this.urls.push(relayUrl) },
-    addRelays(relayUrls){ this.urls = Array.from(new Set(this.urls.concat(this.urls, relayUrls))) },
-    setRelays(relayUrls){ this.urls = relayUrls },
+    addRelay(relayUrl){ 
+      this.urls.push(relayUrl)
+    },
 
-    // setResult(result){ 
-    //   // this.setStat('relays', this.)
-    //   this.results[result.url] = result 
-    // },
-    // setResults(results){ this.results = results },
-    // clearResults(){ this.results = {} },
+    addRelays(relayUrls){ 
+      this.urls = Array.from(new Set(this.urls.concat(this.urls, relayUrls))) 
+    },
 
-    setGeo(geo){ this.geo = geo },
+    setRelays(relayUrls){ 
+      this.urls = relayUrls 
+    },
 
-
+    setGeo(geo){ 
+      this.geo = geo 
+    },
 
     setStat(type, value){ 
       this.count[type] = value 
     },
 
-    setAggregate(aggregate, arr){ this.aggregates[aggregate] = arr },
+    setAggregate(aggregate, arr){ 
+      this.aggregates[aggregate] = arr 
+    },
+
     setAggregates(obj){ 
       this.aggregatesAreSet = true
       this.aggregates = obj 
@@ -81,10 +89,14 @@ export const useRelaysStore = defineStore('relays', {
     setFavorite(relayUrl){ 
       this.favorites.push(relayUrl)
       this.favorites = this.favorites.map( x => x )
+      if(typeof this.nip23[relayUrl] === 'undefined')
+        this.setNip23({ [relayUrl]: { read: true, write: true } })
     },
 
     unsetFavorite(relayUrl){ 
       this.favorites = this.favorites.filter(item => item !== relayUrl)
+      if(typeof this.nip23[relayUrl] !== 'undefined')
+        delete this.store.relays.nip23[relayUrl]
     },
 
     toggleFavorite(relayUrl){
@@ -104,6 +116,14 @@ export const useRelaysStore = defineStore('relays', {
 
     setCanonicals(c){
       this.canonicals = c
-    }
+    },
+
+    setNip23(obj){
+      this.nip23 = Object.assign(obj, this.nip23)
+    },
+
+    setNip23Status(obj) {
+      this.nip23Synced = obj
+    },
   },
 })
